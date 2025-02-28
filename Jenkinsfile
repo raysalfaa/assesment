@@ -10,8 +10,9 @@ pipeline {
             steps {
                 script {
                     // Correctly extract branch details
-                    def targetBranch = env.CHANGE_TARGET ?: env.BRANCH_NAME
-                    def sourceBranch = env.CHANGE_BRANCH ?: env.GIT_BRANCH
+                    def targetBranch = env.CHANGE_TARGET ?: (env.BRANCH_NAME?.startsWith("PR-") ? null : env.BRANCH_NAME)
+                    def sourceBranch = env.CHANGE_BRANCH ?: (env.GIT_BRANCH ?: env.BRANCH_NAME)
+
                     def cloneURL = env.GIT_URL ?: GIT_REPO_URL 
                     echo "🚀 Target Branch: ${targetBranch}"
                     echo "🚀 Source Branch: ${sourceBranch}"
