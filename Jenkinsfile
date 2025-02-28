@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_REPO_URL = 'https://github.com/your-username/your-repo.git'
+    }
+
+    stages {
+        stage('Check Branch') {
+            steps {
+                script {
+                    def targetBranch = env.CHANGE_TARGET
+                    def sourceBranch = env.CHANGE_BRANCH
+                    def cloneURL = env.GIT_URL ?: GIT_REPO_URL  // Clone URL from webhook or default
+
+                    if (targetBranch == 'prod' || targetBranch == 'staging') {
+                        echo "Skipping build as target branch is ${targetBranch}"
+                        currentBuild.result = 'ABORTED'
+                        return
+                    }
+
+                    echo "Target Branch: ${targetBranch}"
+                    echo "Source Branch: ${sourceBranch}"
+                    echo "Clone URL: ${cloneURL}"
+                }
+            }
+        }
+
+        stage('Clone Repository') {
+            steps {
+                git branch: "${env.CHANGE_BRANCH}", url: "${env.GIT_URL ?: GIT_REPO_URL}"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Building project..."
+                // Add build commands here, like Maven or Gradle
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline execution completed!"
+        }
+    }
+}
