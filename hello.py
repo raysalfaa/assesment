@@ -1,2 +1,2 @@
 print("hello")
-print("aman")
+print("aman");
