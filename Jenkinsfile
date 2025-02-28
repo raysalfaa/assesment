@@ -9,30 +9,28 @@ pipeline {
         stage('Check Branch') {
             steps {
                 script {
-                    // Correctly extract branch details
-                    def targetBranch = env.CHANGE_TARGET ?: (env.BRANCH_NAME?.startsWith("PR-") ? null : env.BRANCH_NAME)
-                    def sourceBranch = env.CHANGE_BRANCH ?: (env.GIT_BRANCH ?: env.BRANCH_NAME)
+                    def targetBranch = env.CHANGE_TARGET ?: env.BRANCH_NAME
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.GIT_BRANCH
+                    def cloneURL = env.GIT_URL ?: GIT_REPO_URL  // Clone URL from webhook or default
 
-                    def cloneURL = env.GIT_URL ?: GIT_REPO_URL 
-                    echo "🚀 Target Branch: ${targetBranch}"
-                    echo "🚀 Source Branch: ${sourceBranch}"
-                    echo "🚀 Clone URL: ${cloneURL}"
-                    
+                    if (!targetBranch) {
+                        echo "⚠️ Warning: Target branch is not detected, falling back to Git commands..."
+                        targetBranch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    }
 
-                    // Ensure targetBranch is detected
                     if (!targetBranch) {
                         error "❌ Target branch not detected! Webhook may not be configured properly."
                     }
 
                     // Skip build if target branch is prod or staging
-                    if (targetBranch == 'prod' || targetBranch == 'staging') {
-                        echo "⏩ Skipping build as target branch is ${targetBranch}"
+                    if (targetBranch in ['prod', 'staging']) {
+                        echo "🚫 Skipping build as target branch is ${targetBranch}"
                         currentBuild.result = 'ABORTED'
                         return
                     }
 
                     echo "🚀 Target Branch: ${targetBranch}"
-                    echo "🚀 Source Branch: ${sourceBranch}"
+                    echo "🚀 Source Branch: ${sourceBranch ?: 'Unknown'}"
                     echo "🚀 Clone URL: ${cloneURL}"
                 }
             }
@@ -40,17 +38,13 @@ pipeline {
 
         stage('Clone Repository') {
             steps {
-                script {
-                    def checkoutBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME
-                    echo "🛠️ Checking out branch: ${checkoutBranch}"
-                    git branch: "${checkoutBranch}", url: "${env.GIT_URL ?: GIT_REPO_URL}"
-                }
+                git branch: "${env.BRANCH_NAME}", url: "${env.GIT_URL ?: GIT_REPO_URL}"
             }
         }
 
         stage('Build') {
             steps {
-                echo "🔧 Building project..."
+                echo "🔨 Building project..."
             }
         }
     }
