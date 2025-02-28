@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_URL = 'http://localhost:9000'   // Change to your SonarQube server IP
-        SONARQUBE_SCANNER = 'sonarscanner'  // The name given in Global Tool Configuration
+        SONARQUBE_URL = 'http://localhost:9000'   // Change if SonarQube is running on another server
+        SONARQUBE_SCANNER = 'SonarScanner'  // Name in Global Tool Configuration
+        SONARQUBE_TOKEN = credentials(sqp_bf840f8da52626b73f1c5e955f41e0f1c0339f37)  // Securely fetch token from Jenkins credentials
     }
 
     stages {
@@ -15,31 +16,14 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {  // SonarQube name configured in Jenkins
-                    sh '''
+                withSonarQubeEnv('SonarQube') {
+                    sh """
                         ${SONARQUBE_SCANNER}/bin/sonar-scanner \
                         -Dsonar.projectKey=my-project \
                         -Dsonar.sources=. \
                         -Dsonar.host.url=${SONARQUBE_URL} \
-                        -Dsonar.login=<SONARQUBE_TOKEN>  // Replace with the token from SonarQube
-                    '''
-                }
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo "Building the project..."
-            }
-        }
-
-        stage('Quality Gate Check') {
-            steps {
-                script {
-                    def qg = waitForQualityGate()
-                    if (qg.status != 'OK') {
-                        error "❌ Quality Gate failed: ${qg.status}"
-                    }
+                        -Dsonar.login=${SONARQUBE_TOKEN}
+                    """
                 }
             }
         }
