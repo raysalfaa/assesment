@@ -1,2 +1,4 @@
-print("hello");
-print("aman");
+
+print("hello")
+print("world
+
