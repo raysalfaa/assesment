@@ -4,7 +4,7 @@ pipeline {
     environment {
         SONARQUBE_URL = 'http://localhost:9000'   // Change if SonarQube is running on another server
         SONARQUBE_SCANNER = 'SonarScanner'  // Name in Global Tool Configuration
-        SONARQUBE_TOKEN = credentials(sqp_bf840f8da52626b73f1c5e955f41e0f1c0339f37)  // Securely fetch token from Jenkins credentials
+        SONARQUBE_TOKEN = credentials('sonar')  // Securely fetch token from Jenkins credentials
     }
 
     stages {
