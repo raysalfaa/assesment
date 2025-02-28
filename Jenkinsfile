@@ -14,9 +14,9 @@ pipeline {
                     def sourceBranch = env.CHANGE_BRANCH ?: (env.GIT_BRANCH ?: env.BRANCH_NAME)
 
                     def cloneURL = env.GIT_URL ?: GIT_REPO_URL 
-                    // echo "🚀 Target Branch: ${targetBranch}"
-                    // echo "🚀 Source Branch: ${sourceBranch}"
-                    // echo "🚀 Clone URL: ${cloneURL}"
+                    echo "🚀 Target Branch: ${targetBranch}"
+                    echo "🚀 Source Branch: ${sourceBranch}"
+                    echo "🚀 Clone URL: ${cloneURL}"
                     
 
                     // Ensure targetBranch is detected
