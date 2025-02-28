@@ -2,36 +2,56 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_URL = 'http://localhost:9000'   // Change if SonarQube is running on another server
-        SONARQUBE_SCANNER = 'SonarScanner'  // Name in Global Tool Configuration
-        SONARQUBE_TOKEN = credentials('sonar')  // Securely fetch token from Jenkins credentials
+        GIT_REPO_URL = 'https://github.com/raysalfaa/assesment.git'
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Check Branch') {
             steps {
-                git branch: 'main', url: 'https://github.com/raysalfaa/assesment.git'
+                script {
+                    def targetBranch = env.CHANGE_TARGET ?: env.BRANCH_NAME
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.GIT_BRANCH
+                    def cloneURL = env.GIT_URL ?: GIT_REPO_URL  // Clone URL from webhook or default
+
+                    if (!targetBranch) {
+                        echo "⚠️ Warning: Target branch is not detected, falling back to Git commands..."
+                        targetBranch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    }
+
+                    if (!targetBranch) {
+                        error "❌ Target branch not detected! Webhook may not be configured properly."
+                    }
+
+                    // Skip build if target branch is prod or staging
+                    if (targetBranch in ['prod', 'staging']) {
+                        echo "🚫 Skipping build as target branch is ${targetBranch}"
+                        currentBuild.result = 'ABORTED'
+                        return
+                    }
+
+                    echo "🚀 Target Branch: ${targetBranch}"
+                    echo "🚀 Source Branch: ${sourceBranch ?: 'Unknown'}"
+                    echo "🚀 Clone URL: ${cloneURL}"
+                }
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Clone Repository') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh """
-                        ${SONARQUBE_SCANNER}/bin/sonar-scanner \
-                        -Dsonar.projectKey=my-project \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=${SONARQUBE_URL} \
-                        -Dsonar.login=${SONARQUBE_TOKEN}
-                    """
-                }
+                git branch: "${env.BRANCH_NAME}", url: "${env.GIT_URL ?: GIT_REPO_URL}"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "🔨 Building project..."
             }
         }
     }
 
     post {
         always {
-            echo "Pipeline execution completed!"
+            echo "✅ Pipeline execution completed!"
         }
     }
 }
