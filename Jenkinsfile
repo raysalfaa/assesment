@@ -1,48 +1,40 @@
 pipeline {
     agent any
 
-    environment {
-        GIT_REPO_URL = 'https://github.com/raysalfaa/assesment.git'
+    triggers {
+        genericTrigger(
+            genericVariables: [
+                [key: 'ACTION', value: '$.action'],
+                [key: 'BASE_BRANCH', value: '$.pull_request.base.ref'],
+                [key: 'SOURCE_BRANCH', value: '$.pull_request.head.ref'],
+                [key: 'CLONE_URL', value: '$.pull_request.head.repo.clone_url']
+            ],
+            token: 'your-webhook-secret',
+            printContributedVariables: true,
+            printPostContent: true
+        )
     }
 
     stages {
         stage('Check Branch') {
             steps {
                 script {
-                    def targetBranch = env.CHANGE_TARGET
-                    def sourceBranch = env.CHANGE_BRANCH
-                    def cloneURL = env.GIT_URL ?: GIT_REPO_URL  // Clone URL from webhook or default
-
-                    if (targetBranch == 'prod' || targetBranch == 'staging') {
-                        echo "Skipping build as target branch is ${targetBranch}"
-                        currentBuild.result = 'ABORTED'
-                        return
-                    }
-
-                    echo "Target Branch: ${targetBranch}"
-                    echo "Source Branch: ${sourceBranch}"
-                    echo "Clone URL: ${cloneURL}"
+                    echo "Target Branch: ${env.BASE_BRANCH}"
+                    echo "Source Branch: ${env.SOURCE_BRANCH}"
+                    echo "Clone URL: ${env.CLONE_URL}"
                 }
             }
         }
 
         stage('Clone Repository') {
             steps {
-                git branch: "${env.CHANGE_BRANCH}", url: "${env.GIT_URL ?: GIT_REPO_URL}"
+                script {
+                    if (env.SOURCE_BRANCH == null || env.SOURCE_BRANCH == '') {
+                        error "Source branch is missing. Ensure webhook is correctly configured."
+                    }
+                    git branch: "${env.SOURCE_BRANCH}", url: "${env.CLONE_URL}"
+                }
             }
-        }
-
-        stage('Build') {
-            steps {
-                echo "Building project..."
-                // Add build commands here, like Maven or Gradle
-            }
-        }
-    }
-
-    post {
-        always {
-            echo "Pipeline execution completed!"
         }
     }
 }
