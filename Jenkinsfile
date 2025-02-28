@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_URL = 'http://<SONARQUBE_IP>:9000'   // Change to your SonarQube server IP
-        SONARQUBE_SCANNER = 'SonarScanner'  // The name given in Global Tool Configuration
+        SONARQUBE_URL = 'http://localhost:9000'   // Change to your SonarQube server IP
+        SONARQUBE_SCANNER = 'sonarscanner'  // The name given in Global Tool Configuration
     }
 
     stages {
