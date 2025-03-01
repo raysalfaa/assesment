@@ -1,35 +1,33 @@
 pipeline {
     agent any
-
     triggers {
-        githubPush()  // Triggers the pipeline on GitHub push events (PR updates)
+        githubPullRequest {
+            orgWhitelist(['your-github-org'])  // Replace with your GitHub Org/User
+            allowMembersOfWhitelistedOrgsAsAdmin(true)
+            permitAll(true)
+            cron('* * * * *')  // Polls GitHub every minute for PR changes
+        }
     }
-
-    environment {
-        BASE_BRANCH = "${env.CHANGE_TARGET}"  // Base branch of the PR
-        CLONE_URL = "https://github.com/raysalfaa/assesment.git"
-    }
-
     stages {
-        stage('Check Branch') {
+        stage('Checkout') {
             steps {
-                script {
-                    echo "Target Branch: ${BASE_BRANCH}"
-                    echo "Source Branch: ${env.CHANGE_BRANCH }"
-                    echo "Clone URL: ${CLONE_URL}"
-                }
+                checkout scm
             }
         }
-
-        stage('Clone Repository') {
+        stage('Build') {
             steps {
-                script {
-                    git branch: "${GIT_BRANCH}", 
-                    credentialsId: 'github1', 
-                    url: "${CLONE_URL}"
-                }
+                echo 'Building the PR...'
             }
         }
-
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+            }
+        }
     }
 }
