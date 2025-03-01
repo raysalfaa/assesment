@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        BASE_BRANCH = "${env.GIT_BRANCH}"  // Base branch of the PR
+        BASE_BRANCH = "${env.CHANGE_TARGET}"  // Base branch of the PR
         CLONE_URL = "https://github.com/raysalfaa/assesment.git"
     }
 
@@ -15,7 +15,7 @@ pipeline {
             steps {
                 script {
                     echo "Target Branch: ${BASE_BRANCH}"
-                    echo "Source Branch: ${GIT_BRANCH}"
+                    echo "Source Branch: ${env.CHANGE_BRANCH }"
                     echo "Clone URL: ${CLONE_URL}"
                 }
             }
