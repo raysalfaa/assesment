@@ -1,32 +1,21 @@
 pipeline {
     agent any
-    environment {
-        GIT_CREDENTIALS_ID = 'your-github-credentials-id'  // Replace with correct ID
-        GIT_REPO = 'https://github.com/raysalfaa/assesment.git'
-    }
     stages {
-        stage('Checkout PR') {
+        stage('Checkout') {
             steps {
                 script {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "*/PR-${env.CHANGE_ID}"]],
-                        userRemoteConfigs: [[
-                            url: env.GIT_REPO,
-                            credentialsId: env.GIT_CREDENTIALS_ID
-                        ]]
-                    ])
+                    def branchName = env.GIT_BRANCH
+                    def sourceBranch = env.CHANGE_BRANCH  // Source branch
+                    def baseBranch = env.CHANGE_TARGET   // Base branch
+
+                    if (env.CHANGE_ID) {
+                        echo "Pull Request Detected!"
+                        echo "Source Branch: ${sourceBranch}"
+                        echo "Base Branch: ${baseBranch}"
+                    } else {
+                        echo "Regular Build - Branch: ${branchName}"
+                    }
                 }
-            }
-        }
-        stage('Build') {
-            steps {
-                echo 'Building PR...'
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
             }
         }
     }
