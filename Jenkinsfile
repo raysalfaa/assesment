@@ -9,7 +9,7 @@ pipeline {
                 script {
                     // Clone the repository
                     echo "Cloning repository from ${REPO_URL}"
-                    git url: "${REPO_URL}", branch: "origin/${env.CHANGE_TARGET}" // Change target from the PR event
+                    git url: "${REPO_URL}", branch: "${env.CHANGE_TARGET}" // Change target from the PR event
                 }
             }
         }
