@@ -1,52 +1,27 @@
 pipeline {
     agent any
-
-
-    triggers {
-        githubPush()  // Triggers the pipeline on GitHub push events (PR updates)
-    }
-
     environment {
-        BASE_BRANCH = "${env.GIT_BRANCH}"  // Base branch of the PR
-        CLONE_URL = "https://github.com/raysalfaa/assesment.git"
-
-    triggers {
-        githubPullRequest {
-            orgWhitelist(['your-github-org'])  // Replace with your GitHub Org/User
-            allowMembersOfWhitelistedOrgsAsAdmin(true)
-            permitAll(true)
-            cron('* * * * *')  // Polls GitHub every minute for PR changes
-        }
+        GIT_CREDENTIALS_ID = 'your-github-credentials-id'  // Replace with correct ID
+        GIT_REPO = 'https://github.com/raysalfaa/assesment.git'
     }
     stages {
-
-        stage('Check Branch') {
+        stage('Checkout PR') {
             steps {
                 script {
-                    echo "Target Branch: ${BASE_BRANCH}"
-                    echo "Source Branch: ${GIT_BRANCH}"
-                    echo "Clone URL: ${CLONE_URL}"
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "*/PR-${env.CHANGE_ID}"]],
+                        userRemoteConfigs: [[
+                            url: env.GIT_REPO,
+                            credentialsId: env.GIT_CREDENTIALS_ID
+                        ]]
+                    ])
                 }
-            }
-        }
-
-        stage('Clone Repository') {
-            steps {
-                script {
-                    git branch: "${GIT_BRANCH}", 
-                    credentialsId: 'github1', 
-                    url: "${CLONE_URL}"
-                }
-            }
-        }
-        stage('Checkout') {
-            steps {
-                checkout scm
             }
         }
         stage('Build') {
             steps {
-                echo 'Building the PR...'
+                echo 'Building PR...'
             }
         }
         stage('Test') {
@@ -54,10 +29,5 @@ pipeline {
                 echo 'Running tests...'
             }
         }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying...'
-            }
-        
     }
 }
