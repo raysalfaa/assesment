@@ -22,26 +22,50 @@
 //         }
 //     }
 // }
+// pipeline {
+//     agent any
+//     environment {
+//         PR_ACTION = ""
+//         SOURCE_BRANCH = ""
+//         BASE_BRANCH = ""
+//     }
+//     stages {
+//         stage('Extract PR Info') {
+//             steps {
+//                 script {
+//                     def payload = readJSON text: env.GITHUB_EVENT_PAYLOAD
+//                     PR_ACTION = payload.action  // Example: "opened", "synchronize"
+//                     SOURCE_BRANCH = payload.pull_request.head.ref
+//                     BASE_BRANCH = payload.pull_request.base.ref
+                    
+//                     echo "🔹 PR Action: ${PR_ACTION}"
+//                     echo "🔹 PR Source Branch: ${SOURCE_BRANCH}"
+//                     echo "🔹 PR Base Branch: ${BASE_BRANCH}"
+//                 }
+//             }
+//         }
+//     }
+// }
+
 pipeline {
     agent any
-    environment {
-        PR_ACTION = ""
-        SOURCE_BRANCH = ""
-        BASE_BRANCH = ""
+    triggers {
+        issueCommentTrigger('.*test this please.*') // Optional for manual triggering
     }
     stages {
-        stage('Extract PR Info') {
+        stage('Checkout') {
             steps {
-                script {
-                    def payload = readJSON text: env.GITHUB_EVENT_PAYLOAD
-                    PR_ACTION = payload.action  // Example: "opened", "synchronize"
-                    SOURCE_BRANCH = payload.pull_request.head.ref
-                    BASE_BRANCH = payload.pull_request.base.ref
-                    
-                    echo "🔹 PR Action: ${PR_ACTION}"
-                    echo "🔹 PR Source Branch: ${SOURCE_BRANCH}"
-                    echo "🔹 PR Base Branch: ${BASE_BRANCH}"
-                }
+                checkout scm
+            }
+        }
+        stage('Build') {
+            steps {
+                echo "Building from PR Branch: ${env.BRANCH_NAME}"
+            }
+        }
+        stage('Test') {
+            steps {
+                echo "Running Tests"
             }
         }
     }
