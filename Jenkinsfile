@@ -23,8 +23,13 @@ pipeline {
 
         stage('Clone Repository') {
             steps {
-                git branch: "${GIT_BRANCH}", url: "${CLONE_URL}"
+                script {
+                    git branch: "${GIT_BRANCH}", 
+                    credentialsId: 'github1', 
+                    url: "${CLONE_URL}"
+                }
             }
         }
+
     }
 }
