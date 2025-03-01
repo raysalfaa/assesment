@@ -1,37 +1,34 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()  // Triggers the pipeline on GitHub push events (PR updates)
+    }
+
     environment {
-        SONARQUBE_URL = 'http://localhost:9000'   // Change if SonarQube is running on another server
-        SONARQUBE_SCANNER = 'SonarScanner'  // Name in Global Tool Configuration
-        SONARQUBE_TOKEN = credentials('sonar')  // Securely fetch token from Jenkins credentials
+        BASE_BRANCH = "${env.GIT_BRANCH}"  // Base branch of the PR
+        CLONE_URL = "https://github.com/raysalfaa/assesment.git"
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Check Branch') {
             steps {
-                git branch: 'main', url: 'https://github.com/raysalfaa/assesment.git'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh """
-                        ${SONARQUBE_SCANNER}/bin/sonar-scanner \
-                        -Dsonar.projectKey=my-project \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=${SONARQUBE_URL} \
-                        -Dsonar.login=${SONARQUBE_TOKEN}
-                    """
+                script {
+                    echo "Target Branch: ${BASE_BRANCH}"
+                    echo "Source Branch: ${GIT_BRANCH}"
+                    echo "Clone URL: ${CLONE_URL}"
                 }
             }
         }
-    }
 
-    post {
-        always {
-            echo "Pipeline execution completed!"
+        stage('Clone Repository') {
+            steps {
+                script {
+                    git branch: "${GIT_BRANCH}", 
+                    credentialsId: 'github1', 
+                    url: "${CLONE_URL}"
+                }
+            }
         }
     }
 }
