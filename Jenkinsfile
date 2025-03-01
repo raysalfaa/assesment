@@ -14,6 +14,8 @@ pipeline {
                         echo "Base Branch: ${baseBranch}"
                     } else {
                         echo "Regular Build - Branch: ${branchName}"
+
+                        echo" ${baseBranch}"
                     }
                 }
             }
